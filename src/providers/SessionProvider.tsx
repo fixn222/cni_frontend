@@ -44,6 +44,11 @@ const unauthenticatedSession: SessionData = {
   session: null,
 };
 
+const wait = (ms: number) =>
+  new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+
 export const SessionProvider = ({ children }: { children: ReactNode }) => {
   const [sessionData, setSessionData] = useState<SessionData>(unauthenticatedSession);
   const [status, setStatus] = useState<SessionStatus>("loading");
@@ -72,6 +77,23 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [applySession]);
 
+  const waitForAuthenticatedSession = useCallback(async () => {
+    const delays = [0, 150, 400];
+
+    for (const delay of delays) {
+      if (delay > 0) {
+        await wait(delay);
+      }
+
+      const data = await refreshSession();
+      if (data?.authenticated) {
+        return data;
+      }
+    }
+
+    return null;
+  }, [refreshSession]);
+
   useEffect(() => {
     void refreshSession();
   }, [refreshSession]);
@@ -86,7 +108,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         return { error: result.error, code: result.code };
       }
 
-      const data = await refreshSession();
+      const data = await waitForAuthenticatedSession();
       if (!data?.authenticated) {
         const message = "Sign-in completed but no active session was found";
         setError(message);
@@ -95,7 +117,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
       return { data: result.data };
     },
-    [refreshSession],
+    [waitForAuthenticatedSession],
   );
 
   const signUp = useCallback(
@@ -108,7 +130,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         return { error: result.error, code: result.code };
       }
 
-      const data = await refreshSession();
+      const data = await waitForAuthenticatedSession();
       if (!data?.authenticated) {
         const message = "Account created but no active session was found";
         setError(message);
@@ -117,7 +139,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
       return { data: result.data };
     },
-    [refreshSession],
+    [waitForAuthenticatedSession],
   );
 
   const signOut = useCallback(async () => {
