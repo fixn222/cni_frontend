@@ -16,7 +16,7 @@ import SignUp from "./pages/SignUp";
 import Testimonials from "./pages/Testimonials";
 import VerifyEmail from "./pages/VerifyEmail";
 import { ROUTES } from "./lib/routes";
-import AdminDashboardPage from "./admin/pages/AdminDashboardPage";
+import AdminDashboardPage from "./admin/pages/AdminDashboardPage.tsx";
 
 const Home = () => (
   <>
